@@ -218,3 +218,27 @@ function addEmployee() {
         });
     })
 };
+
+//add departments
+function addDept() {
+    inquirer
+        .prompt([{
+            name: "dept",
+            type: "input",
+            message: "Enter new department's name:"
+        }])
+        .then(function(answer) {
+            connection.query(
+                "INSERT INTO departments SET ?", {
+                    name: answer.dept
+                },
+                function(err) {
+                    if (err) throw err;
+                    console.log("Department " + answer.dept + " successfully added!");
+                    startApp();
+                }
+            );
+        });
+};
+
+// function add role
