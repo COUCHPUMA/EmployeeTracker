@@ -16,8 +16,8 @@ figlet('EMPLOYEE TRACKER!!', function(err, data) {
 var connection = mysql.createConnection({
     host: "localhost",
 
-    //port default - 8080
-    port: 8080,
+    //port default - 3306
+    port: 3306,
 
     // username
     user: "root",
@@ -33,3 +33,71 @@ connection.connect(function(err) {
 });
 
 //function for app start
+function startApp() {
+    inquirer
+        .prompt({
+            name: "action",
+            type: "rawlist",
+            message: "what would you like to do?",
+            choices: [
+                "View all Employees",
+                "View All Employees By Department",
+                "View departments",
+                "View roles",
+                "Add department",
+                "Add role",
+                "Add Employee",
+                "Remove Employee",
+                "Update Employee Role",
+                "Update Employee Manager",
+                "EXIT"
+            ]
+        })
+        .then(function(answer) {
+            switch (answer.action) {
+                case "View All Employees":
+                    viewEmployees();
+                    break;
+
+                case "View All Employees By Department":
+                    viewEmployeesByDept();
+                    break;
+
+                case "View departments":
+                    viewDept();
+                    break;
+
+                case "View roles":
+                    viewRoles();
+                    break;
+
+                case "Add Employee":
+                    addEmployee();
+                    break;
+
+                case "Add department":
+                    addDept();
+                    break;
+
+                case "Add role":
+                    addRole();
+                    break;
+
+                case "Remove Employee":
+                    removeEmployee();
+                    break;
+
+                case "Update Employee Role":
+                    updateEmployeeRole();
+                    break;
+
+                case "Update Employee Manager":
+                    updateEmployeeMng();
+                    break;
+
+                case "EXIT":
+                    console.log("Thanks for using Employee Tracker! Have a nice day!")
+                    process.exit();
+            }
+        });
+}
