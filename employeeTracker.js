@@ -293,3 +293,42 @@ function addRole() {
             });
     })
 };
+
+//remove employees
+function removeEmployee() {
+    var empChoice = [];
+    connection.query("SELECT id, CONCAT(first_name, ' ', last_name) AS name FROM employees", function(err, resEmp) {
+        if (err) throw err;
+        for (var i = 0; i < resEmp.length; i++) {
+            var empList = resEmp[i].name;
+            empChoice.push(empList);
+        };
+
+        inquirer
+            .prompt([{
+                name: "employee_id",
+                type: "rawlist",
+                message: "Select the employee you would like to remove:",
+                choices: empChoice
+            }, ])
+            .then(function(answer) {
+
+                var chosenEmp;
+                for (var i = 0; i < resEmp.length; i++) {
+                    if (resEmp[i].name === answer.employee_id) {
+                        chosenEmp = resEmp[i];
+                    }
+                };
+
+                connection.query(
+                    "DELETE FROM employees WHERE id=?", [chosenEmp.id],
+
+                    function(err) {
+                        if (err) throw err;
+                        console.log("Employee successfully removed!");
+                        startApp();
+                    }
+                );
+            });
+    })
+};
