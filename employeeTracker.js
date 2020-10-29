@@ -3,7 +3,7 @@ var inquirer = require("inquirer");
 var consoleTable = require("console.table");
 var figlet = require('figlet');
 
-//code from figlet module
+//code from figlet module to display a drawing of employee tracker before first prompt
 figlet('EMPLOYEE TRACKER!!', function(err, data) {
     if (err) {
         console.log('Something went wrong...');
@@ -16,13 +16,13 @@ figlet('EMPLOYEE TRACKER!!', function(err, data) {
 var connection = mysql.createConnection({
     host: "localhost",
 
-    //port default - 3306
+    // Your port; if not 3306
     port: 3306,
 
-    // username
+    // Your username
     user: "root",
 
-    //password
+    // Your password
     password: "Ollie2019",
     database: "employeeDb"
 });
@@ -32,15 +32,15 @@ connection.connect(function(err) {
     startApp();
 });
 
-//function for app start
+//Function that starts the app and prompt the questions
 function startApp() {
     inquirer
         .prompt({
             name: "action",
             type: "rawlist",
-            message: "what would you like to do?",
+            message: "What would you like to do?",
             choices: [
-                "View all Employees",
+                "View All Employees",
                 "View All Employees By Department",
                 "View departments",
                 "View roles",
@@ -102,7 +102,7 @@ function startApp() {
         });
 }
 
-//view all employess
+//Function view all employees
 function viewEmployees() {
     var query = `SELECT employees.id, employees.first_name, employees.last_name, role.title, departments.name AS department, role.salary, 
     CONCAT(manager.first_name, ' ', manager.last_name) AS Manager FROM employees LEFT JOIN role on employees.role_id = role.id 
@@ -113,7 +113,7 @@ function viewEmployees() {
     });
 };
 
-// view all emplyees by department
+//Function view all employees by department
 function viewEmployeesByDept() {
     var query = `SELECT departments.name AS department, employees.id, employees.first_name, employees.last_name, role.title FROM employees LEFT JOIN role on 
     employees.role_id = role.id LEFT JOIN departments departments on role.department_id = departments.id WHERE departments.id;`;
@@ -123,7 +123,7 @@ function viewEmployeesByDept() {
     });
 };
 
-//view all departments
+//Function to view all departments
 function viewDept() {
     var query = `select id AS Dept_ID, name AS departments from departments;`;
     connection.query(query, function(err, query) {
@@ -132,7 +132,7 @@ function viewDept() {
     });
 };
 
-//view all rules
+//Function to view all roles
 function viewRoles() {
     var query = `select id AS Role_ID, title, salary AS Salaries from role;`;
     connection.query(query, function(err, query) {
@@ -141,10 +141,10 @@ function viewRoles() {
     });
 };
 
-//add employee
+//Function to add a new employee
 function addEmployee() {
-    //
-    var rolechoice = [];
+    //arrays to display prompt choices from database items 
+    var roleChoice = [];
     connection.query("SELECT * FROM role", function(err, resRole) {
         if (err) throw err;
         for (var i = 0; i < resRole.length; i++) {
@@ -200,7 +200,7 @@ function addEmployee() {
                             chosenDept = resDept[i];
                         }
                     };
-                    //insert into db
+                    //connection to insert response into database  
                     connection.query(
                         "INSERT INTO employees SET ?", {
                             first_name: answer.firstName,
@@ -219,7 +219,7 @@ function addEmployee() {
     })
 };
 
-//add departments
+//Function to add department
 function addDept() {
     inquirer
         .prompt([{
@@ -241,7 +241,7 @@ function addDept() {
         });
 };
 
-// function add role
+//Function to new add role
 function addRole() {
     var deptChoice = [];
     connection.query("SELECT * FROM departments", function(err, resDept) {
@@ -294,7 +294,7 @@ function addRole() {
     })
 };
 
-//remove employees
+//Function to remove employee
 function removeEmployee() {
     var empChoice = [];
     connection.query("SELECT id, CONCAT(first_name, ' ', last_name) AS name FROM employees", function(err, resEmp) {
@@ -333,7 +333,7 @@ function removeEmployee() {
     })
 };
 
-//update employee role
+//Function to update employee role
 function updateEmployeeRole() {
     var empChoice = [];
     connection.query("SELECT id, CONCAT(first_name, ' ', last_name) AS name FROM employees", function(err, resEmp) {
@@ -390,5 +390,57 @@ function updateEmployeeRole() {
                     );
                 })
         })
+    })
+};
+
+//Function to update employee manager
+function updateEmployeeMng() {
+    var empChoice = [];
+    connection.query("SELECT id, CONCAT(first_name, ' ', last_name) AS name FROM employees", function(err, resEmp) {
+        if (err) throw err;
+        for (var i = 0; i < resEmp.length; i++) {
+            var empList = resEmp[i].name;
+            empChoice.push(empList);
+        };
+
+        inquirer
+            .prompt([{
+                    name: "employees",
+                    type: "rawlist",
+                    message: "Select employee you would like to update manager:",
+                    choices: empChoice
+                },
+                {
+                    name: "Managerid",
+                    type: "rawlist",
+                    message: "Select Manager among employees:",
+                    choices: empChoice
+                }
+            ])
+            .then(function(answer) {
+
+                var chosenEmp;
+                for (var i = 0; i < resEmp.length; i++) {
+                    if (resEmp[i].name === answer.employees) {
+                        chosenEmp = resEmp[i];
+                    }
+                };
+                var chosenManager;
+                for (var i = 0; i < resEmp.length; i++) {
+                    if (resEmp[i].name === answer.Managerid) {
+                        chosenManager = resEmp[i];
+                    }
+                };
+                connection.query(
+                    "UPDATE employees SET manager_id = ? WHERE id = ?",
+
+                    [chosenManager.id, chosenEmp.id],
+                    function(err) {
+                        if (err) throw err;
+                        console.log("Employee Manager successfully updated!");
+                        startApp();
+                    }
+                );
+            })
     })
 };
